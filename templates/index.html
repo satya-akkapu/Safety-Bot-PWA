@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety Bot - Welcome</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; background-color: #f4f6f8; color: #333; }
+
+        header {
+            background-color: #0b3954; color: white; padding: 15px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: fixed; width: 100%; top: 0; z-index: 100;
+        }
+
+        header .logo span { color: #ff6e40; }
+
+        nav ul { list-style: none; display: flex; margin: 0; padding: 0; }
+        nav ul li { margin-left: 20px; }
+
+        nav ul li a {
+            color: white; text-decoration: none; font-weight: bold;
+            padding: 5px 10px; transition: 0.3s;
+        }
+
+        nav ul li a:hover { color: #ff6e40; }
+
+        section.welcome {
+            display: flex; justify-content: center; align-items: center;
+            padding: 140px 20px 60px; gap: 50px; flex-wrap: wrap;
+            background: linear-gradient(135deg, #001f3f, #004d7a, #008793);
+            color: white;
+        }
+
+        .welcome-text h1 { font-size: 2.5rem; margin-bottom: 20px; }
+        .welcome-text h1 span { color: #ff6e40; }
+        .welcome-text p { font-size: 1.2rem; margin-bottom: 30px; }
+
+        .btn {
+            background-color: #ff6e40; color: white;
+            padding: 12px 25px; text-decoration: none;
+            border-radius: 5px; font-weight: bold; transition: 0.3s;
+        }
+        .btn:hover { background-color: #ff8533; }
+
+        .welcome-image img { max-width: 400px; width: 100%; }
+
+        section.features { padding: 60px 20px; text-align: center; }
+        section.features h2 { color: #FFFFFF; margin-bottom: 40px; font-size: 2rem; }
+
+        .feature-cards {
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 30px;
+        }
+
+        .card {
+            background-color: white; padding: 30px; border-radius: 15px;
+            width: 250px; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transition: 0.3s;
+        }
+
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.2); }
+
+        .card h3 { color: #0b3954; margin-bottom: 15px; }
+        .card p { font-size: 14px; color: #333; }
+
+        footer { text-align: center; padding: 20px; background-color: #0b3954; color: white; margin-top: 50px; }
+
+        @media(max-width:768px){
+            section.welcome { flex-direction: column; text-align: center; }
+            .feature-cards { flex-direction: column; align-items: center; }
+            nav ul li { margin-left: 10px; }
+        }
+    </style>
+	<link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#d32f2f">
+</head>
+
+<body>
+
+<header>
+    <div class="logo">Safety <span>Bot</span></div>
+
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('register') }}">Register</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('contact') }}">Contact</a></li>
+        </ul>
+    </nav>
+</header>
+
+<section class="welcome">
+    <div class="welcome-text">
+        <h1>Welcome to <span>Safety Bot</span></h1>
+        <p>Your AI-powered guardian for a safer tomorrow. Detect emergencies instantly and notify your loved ones.</p>
+
+        <a class="btn" href="{{ url_for('register') }}">Get Started</a>
+    </div>
+
+    <div class="welcome-image">
+        <img src="{{ url_for('static', filename='images/bot.png') }}" alt="Safety Bot">
+    </div>
+</section>
+
+<section class="features">
+    <h2>Why Choose Safety Bot?</h2>
+
+    <div class="feature-cards">
+        <div class="card">
+            <h3>Real-Time Alerts</h3>
+            <p>Automatic detection of emergency sounds and instant notifications.</p>
+        </div>
+
+        <div class="card">
+            <h3>Easy Setup</h3>
+            <p>Register, add your contacts, and start using Safety Bot immediately.</p>
+        </div>
+
+        <div class="card">
+            <h3>Peace of Mind</h3>
+            <p>Stay connected and respond to emergencies quickly.</p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>© 2025 Safety Bot</p>
+</footer>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/static/service-worker.js")
+    .then(() => console.log("✅ Service Worker Registered"))
+    .catch(err => console.log("❌ SW failed", err));
+}
+</script>
+</body>
+</html>

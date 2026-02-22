@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Safety Bot</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #001f3f, #004d7a, #008793);
+      color: #fff;
+    }
+
+    header {
+      background-color: #0b3954;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 100;
+    }
+
+    header .logo span { color: #ff6e40; }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav ul li { margin-left: 20px; }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    nav ul li a:hover { color: #ff6e40; }
+
+    .login-container {
+      margin: 120px auto 40px;
+      width: 380px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+      color: #fff;
+    }
+
+    .login-container h2 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #ffdf5d;
+    }
+
+    .form-group { margin-bottom: 18px; }
+    label { font-weight: 600; margin-bottom: 6px; display: block; }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+    }
+
+    input:focus { outline: 2px solid #ffdf5d; }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-weight: bold;
+      background: #ffdf5d;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn:hover { background: #ffd700; }
+
+    .back-arrow {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      color: #ffdf5d;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .flash-success { background:#4CAF50; padding:10px; border-radius:8px; }
+    .flash-error { background:#f44336; padding:10px; border-radius:8px; }
+
+    footer {
+      text-align:center;
+      padding: 20px;
+      margin-top: 40px;
+      background:#0b3954;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">Safety <span>Bot</span></div>
+  <nav>
+    <ul>
+      <li><a href="{{ url_for('index') }}">Home</a></li>
+      <li><a href="{{ url_for('register') }}">Register</a></li>
+      <li><a href="{{ url_for('contact') }}">Contact</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="login-container">
+
+  <a class="back-arrow" href="{{ url_for('index') }}">&#8592; Back</a>
+
+  <h2>Login</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="{% if category == 'success' %}flash-success{% else %}flash-error{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('login') }}">
+
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="Enter email" required>
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter password" required>
+    </div>
+
+    <button type="submit" class="btn">Login</button>
+
+  </form>
+
+</div>
+
+<footer>
+  <p>© 2025 Safety Bot</p>
+</footer>
+
+</body>
+</html>

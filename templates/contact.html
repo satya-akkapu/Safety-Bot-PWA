@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact - Safety Bot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #001f3f, #004d7a, #008793);
+      color: #fff;
+    }
+
+    .back-arrow {
+      display: inline-block;
+      margin: 100px 0 20px 20px;
+      font-size: 1.2rem;
+      text-decoration: none;
+      color: #ffdf5d;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .back-arrow:hover {
+      color: #fff;
+      transform: translateX(-5px);
+    }
+
+    .contact-container {
+      max-width: 700px;
+      margin: 40px auto 40px;
+      background: rgba(255,255,255,0.15);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 32px;
+      color: #ffdf5d;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    .info {
+      margin-top: 30px;
+      text-align: left;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 15px;
+    }
+
+    .info strong {
+      color: #ffd700;
+    }
+
+    a {
+      color: #ffdf5d;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #0b3954;
+      color: white;
+      margin-top: 50px;
+    }
+
+    @media(max-width:750px){
+      .contact-container {
+        width: 90%;
+        padding: 30px;
+      }
+      .back-arrow {
+        margin-top: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Back to Welcome -->
+  <a href="{{ url_for('index') }}" class="back-arrow">&#8592; Back to Welcome</a>
+
+  <div class="contact-container">
+    <h2>Contact Safety Bot</h2>
+    <p>We are committed to your safety. For inquiries, feedback, or support, you can reach us via the following channels:</p>
+
+    <div class="info">
+      <p><strong>Email:</strong> <a href="mailto:safetybot@gmail.com">safetybot@gmail.com</a></p>
+      <p><strong>Phone:</strong> <a href="tel:+918297511784">+91 82975 11784</a></p>
+      <p><strong>Important Notice:</strong> Safety Bot is intended for emergency use only. Misuse of this system (false alarms, prank usage, or harassment) is strictly prohibited and may result in legal action under applicable laws. Please use responsibly.</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2025 Safety Bot</p>
+  </footer>
+
+</body>
+</html>

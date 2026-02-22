@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register - Safety Bot</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+
+        body{
+            margin:0;
+            font-family: Arial;
+            background:#eef3f8;
+        }
+
+        .navbar{
+            background:#073b4c;
+            color:white;
+            padding:14px 28px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .nav-links a{
+            color:white;
+            margin-left:18px;
+            text-decoration:none;
+            font-weight:600;
+        }
+
+        .card{
+            width:420px;
+            margin:40px auto;
+            background:white;
+            border-radius:16px;
+            padding:30px;
+            box-shadow:0 10px 26px rgba(0,0,0,.12);
+        }
+
+        .title{
+            text-align:center;
+            font-size:22px;
+            font-weight:700;
+        }
+
+        .accent{ color:#ff5722; }
+
+        .logo{
+            width:80px;
+            display:block;
+            margin:0 auto 10px;
+        }
+
+        .input-group{
+            margin-top:12px;
+        }
+
+        input{
+            width:100%;
+            padding:10px;
+            border-radius:8px;
+            border:1px solid #ccc;
+        }
+
+        button{
+            width:100%;
+            padding:12px;
+            background:#ff7043;
+            color:white;
+            border:none;
+            border-radius:10px;
+            font-weight:700;
+            margin-top:12px;
+        }
+
+        .back-btn{
+            display:flex;
+            align-items:center;
+            gap:6px;
+            margin-bottom:10px;
+            color:#073b4c;
+            cursor:pointer;
+        }
+
+        .flash{
+            padding:8px;
+            border-radius:8px;
+            margin-bottom:8px;
+        }
+
+        .success{ background:#d9f7d9; }
+        .error{ background:#ffd6d6; }
+
+    </style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <strong>Safety <span class="accent">Bot</span></strong>
+
+    <div class="nav-links">
+        <a href="{{ url_for('register') }}">Register</a>
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('contact') }}">Contact</a>
+    </div>
+</div>
+
+<div class="card">
+
+    <div onclick="window.history.back()" class="back-btn">
+        <i class="fa fa-arrow-left"></i> Back
+    </div>
+
+    <img src="{{ url_for('static', filename='images/bot.png') }}" class="logo">
+
+    <div class="title">
+        Join <span class="accent">Safety Bot</span>
+    </div>
+
+    <p style="text-align:center;margin-top:4px;">
+        Register to secure your emergency alerts
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash {{category}}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('register') }}">
+	    <div class="input-group">
+            <label>First Name</label>
+            <input type="text" name="first_name" placeholder="Enter first name" required>
+        </div>
+
+        <div class="input-group">
+            <label>Last Name</label>
+            <input type="text" name="last_name" placeholder="Enter last name" required>
+        </div>
+
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="Enter email" required>
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Set password" required>
+        </div>
+
+        <div class="input-group">
+            <label>Relative Phone 1 (+91)</label>
+            <input type="text" name="relative_phone1" placeholder="+91XXXXXXXXXX" required>
+        </div>
+
+        <div class="input-group">
+            <label>Relative Phone 2 (+91)</label>
+            <input type="text" name="relative_phone2" placeholder="+91XXXXXXXXXX" required>
+        </div>
+
+        <button type="submit">Create Account</button>
+
+    </form>
+
+</div>
+
+</body>
+</html>

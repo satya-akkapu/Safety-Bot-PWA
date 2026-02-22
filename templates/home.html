@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - Safety Bot</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #001f3f, #004d7a, #008793);
+      color: #fff;
+      text-align: center;
+    }
+
+    header {
+      background:#0b3954;
+      padding: 15px 30px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      position:fixed;
+      width:100%;
+      top:0;
+      z-index: 100;
+    }
+
+    nav ul { display:flex; list-style:none; padding:0; margin:0; }
+    nav ul li { margin-left:20px; }
+    nav ul li a { color:#fff; text-decoration:none; font-weight:bold; }
+    nav ul li a:hover { color:#ff6e40; }
+
+    .home-container {
+      margin: 120px auto 40px;
+      width: 600px;
+      padding: 40px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.15);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .bot-image {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      border: 5px solid #ffdf5d;
+      object-fit: contain;
+      background:#fff;
+    }
+
+    .control-buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    button {
+      padding: 12px 25px;
+      border-radius: 10px;
+      border:none;
+      font-weight:bold;
+      background:#ffdf5d;
+      cursor:pointer;
+      min-width: 160px;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    footer {
+      margin-top:40px;
+      padding:20px;
+      background:#0b3954;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">Safety <span>Bot</span></div>
+  <nav>
+    <ul>
+      <li><a href="{{ url_for('login') }}">Logout</a></li>
+      <li><a href="{{ url_for('contact') }}">Contact</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="home-container">
+
+  <img src="{{ url_for('static', filename='images/bot1.png') }}" class="bot-image">
+
+  <h2>Emergency Sound Detection</h2>
+
+  <p>
+    Safety Bot is monitoring your surroundings for emergency sounds.
+    If a distress sound is detected, alerts will be sent to your trusted contacts.
+  </p>
+
+  <div class="control-buttons">
+    <button id="startBtn">▶ Start Listening</button>
+    <button id="stopBtn" disabled>■ Stop Listening</button>
+  </div>
+
+  <p id="status">Idle</p>
+
+</div>
+
+<footer>
+  <p>© 2025 Safety Bot</p>
+</footer>
+
+<!-- ================= JS ================= -->
+<script>
+/* ================= LOCATION SETUP ================= */
+
+let userLatitude = null;
+let userLongitude = null;
+
+function requestLocationPermission() {
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        userLatitude = position.coords.latitude;
+        userLongitude = position.coords.longitude;
+        console.log("Location Allowed:", userLatitude, userLongitude);
+      },
+      function(error) {
+        alert("Please allow Location access for emergency alerts.");
+      }
+    );
+  } else {
+    alert("Geolocation not supported on this device.");
+  }
+}
+
+// Ask location when page loads
+window.onload = function () {
+  requestLocationPermission();
+};
+
+
+/* ================= AUDIO VARIABLES ================= */
+
+let audioContext;
+let source;
+let processor;
+let audioChunks = [];
+let intervalId;
+let emergencyAlreadyShown = false;
+
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const statusText = document.getElementById("status");
+
+
+/* ================= WAV HELPERS ================= */
+
+function mergeBuffers(chunks) {
+  let length = 0;
+  chunks.forEach(c => length += c.length);
+  const result = new Float32Array(length);
+  let offset = 0;
+  chunks.forEach(c => {
+    result.set(c, offset);
+    offset += c.length;
+  });
+  return result;
+}
+
+function downsampleBuffer(buffer, sampleRate, outSampleRate = 16000) {
+  if (outSampleRate === sampleRate) return buffer;
+  const ratio = sampleRate / outSampleRate;
+  const length = Math.round(buffer.length / ratio);
+  const result = new Float32Array(length);
+  let offsetResult = 0;
+  let offsetBuffer = 0;
+
+  while (offsetResult < length) {
+    const nextOffsetBuffer = Math.round((offsetResult + 1) * ratio);
+    let accum = 0, count = 0;
+
+    for (let i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {
+      accum += buffer[i];
+      count++;
+    }
+    result[offsetResult] = accum / count;
+    offsetResult++;
+    offsetBuffer = nextOffsetBuffer;
+  }
+  return result;
+}
+
+function encodeWAV(samples, sampleRate) {
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+
+  function writeString(view, offset, string) {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  }
+
+  writeString(view, 0, "RIFF");
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeString(view, 8, "WAVE");
+  writeString(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(view, 36, "data");
+  view.setUint32(40, samples.length * 2, true);
+
+  let offset = 44;
+  for (let i = 0; i < samples.length; i++, offset += 2) {
+    let s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+
+  return new Blob([view], { type: "audio/wav" });
+}
+
+
+/* ================= START LISTENING ================= */
+
+async function startListening() {
+
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  source = audioContext.createMediaStreamSource(stream);
+  processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+  audioChunks = [];
+  emergencyAlreadyShown = false;
+
+  source.connect(processor);
+  processor.connect(audioContext.destination);
+
+  processor.onaudioprocess = (e) => {
+    const channelData = e.inputBuffer.getChannelData(0);
+    audioChunks.push(new Float32Array(channelData));
+  };
+
+  statusText.innerText = "Listening...";
+  startBtn.disabled = true;
+  stopBtn.disabled = false;
+
+  intervalId = setInterval(async () => {
+
+    if (audioChunks.length === 0) return;
+
+    const merged = mergeBuffers(audioChunks);
+    const downsampled = downsampleBuffer(merged, audioContext.sampleRate);
+    const wavBlob = encodeWAV(downsampled, 16000);
+    audioChunks = [];
+
+    const formData = new FormData();
+    formData.append("audio", wavBlob, "audio.wav");
+
+    // Send location also
+    formData.append("latitude", userLatitude);
+    formData.append("longitude", userLongitude);
+
+    try {
+      const res = await fetch("/predict", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+
+      document.getElementById("prob").innerText =
+        "Probability: " + data.probability.toFixed(3);
+
+      // 🔥 Emergency Threshold
+      if (data.probability >= 0.70 && !emergencyAlreadyShown) {
+        emergencyAlreadyShown = true;
+        alert("🚨 Emergency Detected! Location & SMS Sent.");
+      }
+
+    } catch (err) {
+      console.error("Error sending audio:", err);
+    }
+
+  }, 3000);
+}
+
+
+/* ================= STOP LISTENING ================= */
+
+function stopListening() {
+
+  clearInterval(intervalId);
+
+  if (processor) processor.disconnect();
+  if (source) source.disconnect();
+  if (audioContext) audioContext.close();
+
+  statusText.innerText = "Stopped";
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+}
+
+startBtn.onclick = startListening;
+stopBtn.onclick = stopListening;
+
+</script>
+<div id="prob">Probability: --</div>
+</body>
+</html>

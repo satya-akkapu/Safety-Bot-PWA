@@ -1,0 +1,10 @@
+tfenv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.dll
+*.lib
+*.so
+*.h5
+*.wav
