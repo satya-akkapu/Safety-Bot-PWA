@@ -5,26 +5,33 @@ from datetime import datetime
 import numpy as np
 import librosa
 import tensorflow as tf
-import subprocess
 import os
 import uuid
 
-# ✅ ADDED: Import SMS function
+# ✅ Import SMS function
 from sms import send_sms
 
 # ================= APP SETUP =================
 app = Flask(__name__, template_folder="templates", static_folder="static")
-app.secret_key = "your_secret_key_here"
+
+# ✅ Secure secret key from environment
+app.secret_key = os.environ.get("SECRET_KEY", "fallback_secret_key")
 
 DB_PATH = "users.db"
 
 # ================= LOAD ML MODEL =================
-MODEL_PATH = os.path.join("models", "emergency_model.h5")
-model = tf.keras.models.load_model(MODEL_PATH)
-print("✅ Emergency CNN model loaded")
+MODEL_PATH = "emergency_model.h5"
+
+if os.path.exists(MODEL_PATH):
+    model = tf.keras.models.load_model(MODEL_PATH)
+    print("✅ Emergency CNN model loaded")
+else:
+    print("❌ Model file not found!")
+    model = None
 
 # ================= GLOBAL STATES =================
 latest_location = {"lat": None, "lon": None}
+
 listener_state = {
     "running": False,
     "emergency": False,
@@ -139,21 +146,19 @@ def get_location():
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
+        if model is None:
+            return jsonify({"error": "Model not loaded", "probability": 0})
+
         if "audio" not in request.files:
-            print("❌ No audio received")
             return jsonify({"probability": 0})
 
         audio_file = request.files["audio"]
 
-        # Save audio
         filename = f"input_{uuid.uuid4()}.wav"
         audio_file.save(filename)
-        print("🎤 Audio saved:", filename)
 
-        # Load audio
         y, sr = librosa.load(filename, sr=16000, mono=True)
 
-        # Generate Mel Spectrogram
         mel = librosa.feature.melspectrogram(
             y=y,
             sr=sr,
@@ -163,8 +168,6 @@ def predict():
         )
 
         mel_db = librosa.power_to_db(mel, ref=np.max)
-
-        # Resize to (128,128)
         mel_db = mel_db[:128, :128]
 
         if mel_db.shape[1] < 128:
@@ -174,24 +177,23 @@ def predict():
                 mode="constant"
             )
 
-        # Normalize
-        mel_db = (mel_db - mel_db.min()) / (mel_db.max() - mel_db.min())
+        # ✅ Safe normalization
+        min_val = mel_db.min()
+        max_val = mel_db.max()
 
-        # Shape for CNN
+        if max_val - min_val != 0:
+            mel_db = (mel_db - min_val) / (max_val - min_val)
+        else:
+            mel_db = np.zeros_like(mel_db)
+
         X = mel_db.reshape(1, 128, 128, 1)
 
-        # Predict
         prediction = model.predict(X)[0][0]
         probability = float(prediction)
 
-        print("📊 Model Probability:", probability)
-
-        # ✅ ADDED: Emergency check & SMS sending
         is_emergency = probability >= 0.70
 
         if is_emergency:
-            print("🚨 Emergency detected — sending SMS")
-
             lat = latest_location.get("lat")
             lon = latest_location.get("lon")
 
@@ -201,7 +203,7 @@ def predict():
                 location_link = "Location not available"
 
             send_sms(
-                to_number="+917702312244",   
+                to_number="+917702312244",
                 name="User",
                 location=location_link
             )
@@ -224,4 +226,5 @@ def listener_status():
 
 # ================= RUN =================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
