@@ -1,12 +1,16 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import numpy as np
 import librosa
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import tensorflow as tf
-import os
 import uuid
 
 # ✅ Import SMS function
