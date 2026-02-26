@@ -142,7 +142,6 @@ function requestLocationPermission() {
   }
 }
 
-// Ask location when page loads
 window.onload = function () {
   requestLocationPermission();
 };
@@ -237,6 +236,8 @@ function encodeWAV(samples, sampleRate) {
 
 async function startListening() {
 
+  console.log("🎤 Listening started...");
+
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -269,23 +270,37 @@ async function startListening() {
 
     const formData = new FormData();
     formData.append("audio", wavBlob, "audio.wav");
-
-    // Send location also
     formData.append("latitude", userLatitude);
     formData.append("longitude", userLongitude);
 
     try {
-      const res = await fetch("/predict", {
+      console.log("📡 Sending audio to backend...");
+
+      const res = await fetch(window.location.origin + "/predict", {
         method: "POST",
         body: formData
       });
 
+      console.log("Server status:", res.status);
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Server returned error page:", text);
+        return;
+      }
+
       const data = await res.json();
 
-      document.getElementById("prob").innerText =
-        "Probability: " + data.probability.toFixed(3);
+      console.log("Prediction response:", data);
 
-      // 🔥 Emergency Threshold
+      if (data.probability !== undefined) {
+        document.getElementById("prob").innerText =
+          "Probability: " + data.probability.toFixed(3);
+      } else {
+        console.error("Invalid response format:", data);
+        return;
+      }
+
       if (data.probability >= 0.70 && !emergencyAlreadyShown) {
         emergencyAlreadyShown = true;
         alert("🚨 Emergency Detected! Location & SMS Sent.");
@@ -312,12 +327,13 @@ function stopListening() {
   statusText.innerText = "Stopped";
   startBtn.disabled = false;
   stopBtn.disabled = true;
+
+  console.log("🛑 Listening stopped.");
 }
 
 startBtn.onclick = startListening;
 stopBtn.onclick = stopListening;
 
 </script>
-<div id="prob">Probability: --</div>
 </body>
 </html>
